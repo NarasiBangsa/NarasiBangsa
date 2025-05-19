@@ -1,15 +1,15 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8001/api/', // Update this URL
+  baseURL: 'http://127.0.0.1:8001/api/',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: true // Penting untuk authentication dengan Laravel Sanctum
+  withCredentials: true
 });
 
-// Request interceptor - menambahkan headers atau token
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -23,43 +23,18 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - handling errors & refresh token
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      try {
-        // Attempt to refresh token
-        const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
-          refresh_token: refreshToken
-        });
-
-        const { token } = response.data;
-        localStorage.setItem('token', token);
-        
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return api(originalRequest);
-      } catch (error) {
-        // If refresh fails, redirect to login
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-      }
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
-
-    // Handle other errors
-    const errorMessage = error.response?.data?.message || 'Terjadi kesalahan';
-    
-    // You can integrate with your toast/notification system here
-    console.error('API Error:', errorMessage);
-
     return Promise.reject(error);
   }
 );
@@ -74,9 +49,13 @@ const handleResponse = (promise) => {
 // API Methods
 export const apiService = {
   // Auth endpoints
-  login: (credentials) => handleResponse(api.post('/auth/login', credentials)),
-  register: (userData) => handleResponse(api.post('/auth/register', userData)),
-  logout: () => handleResponse(api.post('/auth/logout')),
+  register: (userData) => handleResponse(api.post('/register', userData)),
+  login: (credentials) => handleResponse(api.post('/login', credentials)),
+  logout: () => handleResponse(api.post('/logout')),
+  me: () => handleResponse(api.get('/me')),
+  
+  // Profile endpoints
+  updateProfile: (data) => handleResponse(api.put('/profile', data)),
   
   // Article endpoints
   getArticles: (params) => handleResponse(api.get('/articles', { params })),
@@ -92,20 +71,19 @@ export const apiService = {
   // Comment endpoints
   getComments: (articleId) => handleResponse(api.get(`/articles/${articleId}/comments`)),
   createComment: (articleId, data) => handleResponse(api.post(`/articles/${articleId}/comments`, data)),
+
+  // Admin endpoints
+  getUsers: () => handleResponse(api.get('/admin/users')),
+  createUser: (userData) => handleResponse(api.post('/admin/users', userData)),
+  updateUser: (userId, userData) => handleResponse(api.put(`/admin/users/${userId}`, userData)),
+  deleteUser: (userId) => handleResponse(api.delete(`/admin/users/${userId}`)),
   
-  // User endpoints
-  getUserProfile: () => handleResponse(api.get('/user/profile')),
-  updateUserProfile: (data) => handleResponse(api.put('/user/profile', data)),
+  getSettings: () => handleResponse(api.get('/admin/settings')),
+  updateSettings: (settings) => handleResponse(api.put('/admin/settings', settings)),
+  
+  createCategory: (data) => handleResponse(api.post('/admin/categories', data)),
+  updateCategory: (id, data) => handleResponse(api.put(`/admin/categories/${id}`, data)),
+  deleteCategory: (id) => handleResponse(api.delete(`/admin/categories/${id}`)),
 };
 
 export default api;
-
-// Menggunakan error handling wrapper
-const [error, data] = await apiService.getArticles({ category: 'nasional' });
-if (error) {
-  console.error('Error fetching articles:', error);
-  return;
-}
-
-// Data available here
-console.log(data);
