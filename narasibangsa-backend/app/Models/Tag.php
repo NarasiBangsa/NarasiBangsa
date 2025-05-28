@@ -1,6 +1,4 @@
 <?php
-adrianhalim/Documents/NarasiBangsa/narasibangsa-backend/app/Models/Tag.php
-<?php
 
 namespace App\Models;
 

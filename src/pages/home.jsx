@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, ChevronRight } from 'lucide-react';
 import { mockNews } from '../mocks/newsData';
+import ApiTest from '../components/ApiTest';
 
 const CategoryPreview = ({ title, route, news }) => (
   <section className="space-y-4">
@@ -56,7 +57,7 @@ const Home = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [location.pathname]); // Scroll ke atas saat path berubah
+  }, [location.pathname]);
 
   return (
     <div className="space-y-12">
@@ -149,6 +150,7 @@ const Home = () => {
       />
 
       {/* Tambah kategori lainnya jika perlu */}
+      <ApiTest />
     </div>
   );
 };

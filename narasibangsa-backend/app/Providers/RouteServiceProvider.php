@@ -1,6 +1,4 @@
 <?php
-/adrianhalim/Documents/NarasiBangsa/narasibangsa-backend/app/Providers/RouteServiceProvider.php
-<?php
 
 namespace App\Providers;
 
@@ -27,7 +25,7 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            Route::middleware(['api', 'cors'])
+            Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 

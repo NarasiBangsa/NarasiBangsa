@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ArticleController;
@@ -7,23 +8,62 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\API\CommentController;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
+// Test endpoint
+Route::get('/test', function() {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'API connection successful'
+    ]);
+});
+
 // Public Auth Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/auth-test', function() {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Authentication successful',
+            'user' => auth()->user()
+        ]);
+    });
 });
 
-// Public article routes
+// Public Article Routes
 Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{slug}', [ArticleController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{slug}', [CategoryController::class, 'show']);
 Route::get('/tags', [TagController::class, 'index']);
 Route::get('/tags/{slug}', [TagController::class, 'show']);
+
+// Public test endpoint
+Route::get('/test', function() {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'API connection successful',
+        'timestamp' => now()
+    ]);
+});
+
+// Protected test endpoint
+Route::middleware('auth:sanctum')->get('/auth-test', function(Request $request) {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Authentication successful',
+        'user' => $request->user()
+    ]);
+});
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
